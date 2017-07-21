@@ -1,3 +1,13 @@
+// Disable all the linting errors which can be silenced without actually fixing the code..
+// jshint esversion:6
+// jshint strict:false
+// jshint curly:false
+// jshint plusplus:false
+// jshint expr:true
+// jshint latedef:false
+// jshint noempty:false
+// jshint shadow:true
+//
 import bower from 'bower.json';
 
 import Paho from 'mqttws';
@@ -23,6 +33,28 @@ var config = storage.get('mqtt-admin') || {};
 config.mqttHost = config.mqttHost || '';
 config.mqttPort = config.mqttPort || '';
 config.maxPayloadSize = config.maxPayloadSize || 1024;
+config.mqttshTrim = config.mqttshTrim || false;
+
+if (config.mqttHost === '' || config.mqttPort === '' || config.protocol) {
+  config.mqttHost = document.location.hostname;
+  if( document.location.port === '' ) {
+    if( document.location.protocol === 'https:' ) {
+      config.mqttPort = 443;
+      config.protocol = 'wss';
+    } else {
+      config.mqttPort = 80;
+      config.protocol = 'ws';
+    }
+  } else {
+    config.mqttPort = parseInt(document.location.port);
+    // Assume ws://
+    config.protocol = 'ws';
+  }
+}
+
+if (typeof config.clientIdSuffix === 'undefined') {
+    config.clientIdSuffix = true;
+}
 
 if (!config.server) {
     config.server = [];
@@ -1221,6 +1253,8 @@ if (config.mqttHost && config.mqttPort) {
         }
 
         for (var sid in subscriptions) {
+          if (subscriptions.hasOwnProperty(sid)) {
+
             var sub = subscriptions[sid];
             if (sub.mode !== 'stop') {
                 for (var i = 0; i < sub.topics.length; i++) {
@@ -1239,6 +1273,7 @@ if (config.mqttHost && config.mqttPort) {
                     }
                 }
             }
+          }
         }
 
         var pointer;
